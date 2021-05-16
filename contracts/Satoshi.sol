@@ -11,8 +11,13 @@ contract Satoshi is ISatoshiERC20 {
     string public override constant name = 'Satoshi';
     string public override constant version = '1';
     string public override constant symbol = 'SATS';
-    uint8 public override constant decimals = 0; // decimals of WBTC is 8
-    uint public override constant supplyCap = 2099999997690000; // safeguard totalSupply to be never more than 21 trillion SATS, i.e. 21M BTC
+    // decimals of WBTC is 8
+    // we cannot set decimals to 0 to get it done
+    // it will not be compatible with Uniswap LP
+    // hence we use 18 decimals and need a conversion between WBTC and SATS
+    // there will be friction when converting back from SATS to WBTC
+    uint8 public override constant decimals = 18;
+    uint public override constant supplyCap = 2099999997690000 * 10**18; // safeguard totalSupply to be never more than 21 trillion SATS, i.e. 21M BTC
     uint public override totalSupply;
     mapping(address => uint) public override balanceOf;
     mapping(address => mapping(address => uint)) public override allowance;
@@ -103,26 +108,42 @@ contract Satoshi is ISatoshiERC20 {
         _approve(owner, spender, value);
     }
 
-    function unpack(uint amount, address receiver) public override returns (bool) {
-        uint mint_amount = amount.min(IERC20(WBTC).balanceOf(msg.sender));
-        require(IERC20(WBTC).transferFrom(msg.sender, address(this), mint_amount), 'Satoshi: WBTC_TRANSFER_FAILED');
+    // unit of sats. i.e. unpack 5000 => 5000 sats
+    function unpack(uint unit_sats, address receiver) public override returns (bool) {
+        // amount of wbtc
+        // amount of satoshi = amount of wbtc * 10^10 (decimals 18 - 8 = 10)
+        // btc:sats = 1:10^8, therefore 
+        // multiplier = 10^8 * 10^10 = 10^18 = decimals
+        uint amount_wbtc = unit_sats.min(IERC20(WBTC).balanceOf(msg.sender)); // amount of wbtc
+        uint mint_amount = amount_wbtc * 10**decimals; // amount of satoshi
+
+        require(IERC20(WBTC).transferFrom(msg.sender, address(this), amount_wbtc), 'Satoshi: WBTC_TRANSFER_FAILED');
         _mint(receiver, mint_amount);
+
         return true;
     }
 
-    function pack(uint amount, address receiver) public override returns (bool) {
-        uint burn_amount = amount.min(balanceOf[msg.sender]);
+    // unit of sats. i.e. pack 5000 => 0.00005000 WBTC
+    function pack(uint unit_sats, address receiver) public override returns (bool) {
+        // amount of satoshi
+        // amount of wbtc = amount of satoshi / 10^10 (decimals 18 - 8 = 10)
+        // btc:sats = 1:10^8, therefore divisor = 10^8 * 10^10 = 10^18
+        uint amount_wbtc = unit_sats;
+        uint amount_sats = unit_sats * 10**decimals;
+        uint burn_amount = amount_sats.min(balanceOf[msg.sender]);
+
         _burn(msg.sender, burn_amount);
-        require(IERC20(WBTC).transfer(receiver, burn_amount));
+        require(IERC20(WBTC).transfer(receiver, amount_wbtc));
+
         return true;
     }
 
-    function unpack(uint amount) external override returns (bool) {
-        return unpack(amount, msg.sender);
+    function unpack(uint unit_sats) external override returns (bool) {
+        return unpack(unit_sats, msg.sender);
     }
 
-    function pack(uint amount) external override returns (bool) {
-        return pack(amount, msg.sender);
+    function pack(uint unit_sats) external override returns (bool) {
+        return pack(unit_sats, msg.sender);
     }
 
 }
