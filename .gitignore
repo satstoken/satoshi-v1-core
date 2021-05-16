@@ -1,5 +1,8 @@
 node_modules
 
+# deployment secret keys
+.secrets.json
+
 # vim temp files
 .*~
 
