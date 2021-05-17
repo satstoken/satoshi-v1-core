@@ -115,7 +115,7 @@ contract Satoshi is ISatoshiERC20 {
         // btc:sats = 1:10^8, therefore 
         // multiplier = 10^8 * 10^10 = 10^18 = decimals
         uint amount_wbtc = unit_sats.min(IERC20(WBTC).balanceOf(msg.sender)); // amount of wbtc
-        uint mint_amount = amount_wbtc * 10**decimals; // amount of satoshi
+        uint mint_amount = amount_wbtc.mul(10**decimals); // amount of satoshi
 
         require(IERC20(WBTC).transferFrom(msg.sender, address(this), amount_wbtc), 'Satoshi: WBTC_TRANSFER_FAILED');
         _mint(receiver, mint_amount);
@@ -129,7 +129,7 @@ contract Satoshi is ISatoshiERC20 {
         // amount of wbtc = amount of satoshi / 10^10 (decimals 18 - 8 = 10)
         // btc:sats = 1:10^8, therefore divisor = 10^8 * 10^10 = 10^18
         uint amount_wbtc = unit_sats;
-        uint amount_sats = unit_sats * 10**decimals;
+        uint amount_sats = unit_sats.mul(10**decimals);
         uint burn_amount = amount_sats.min(balanceOf[msg.sender]);
 
         _burn(msg.sender, burn_amount);
