@@ -4,7 +4,7 @@ Satoshi (SATS) is the well-known smallest unit of bitcoin all over the world whi
 
 Every SATS token is 1:1 backed by 0.00000001 BTC, and having much finer liquidity of 18 decimals, which makes it works with Uniswap V3 very well. Meanwhile, the supply cap of the SATS token mintable is hard coded and infeasible to falsify, that can be a rigid restraint of BTC issuance amount to be never more than around 21 million. Starting from this, we are going to build a BTC value backed DeFi skyscraper for BTC hodlers to gain a better yield from their bottom tier assets, as well as for newcomers to get into the crypto world in a more easily and friendly way.
 
-Read more about Satoshi unit at https://en.bitcoin.it/wiki/Satoshi\_(unit). 
+[Read more](https://en.bitcoin.it/wiki/Satoshi_(unit)) about Satoshi unit. 
 
 ## Development
 
