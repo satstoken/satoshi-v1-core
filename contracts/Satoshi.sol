@@ -1,4 +1,16 @@
-//SPDX-License-Identifier: MIT
+/**
+    Token Creation Contract
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version. 
+    
+    A copy also available at <https://www.gnu.org/licenses/>.
+
+
+*/
+//SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity ^0.7.0;
 
 import './interfaces/IERC20.sol';
