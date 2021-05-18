@@ -29,7 +29,17 @@ contract Satoshi is ISatoshiERC20 {
     // hence we use 18 decimals and need a conversion between WBTC and SATS
     // there will be friction when converting back from SATS to WBTC
     uint8 public override constant decimals = 18;
-    uint public override constant supplyCap = 2099999997690000 * 10**18; // safeguard totalSupply to be never more than 21 trillion SATS, i.e. 21M BTC
+    // The formula can be found here: https://en.bitcoin.it/wiki/Controlled_supply
+    // python program to calculate the supplyCap value, described as follow:
+    //
+    // import numpy
+    // print("result:", (1-numpy.power(0.5, 32)) * 210000 * 50 * 2)
+    //
+    // >> result: 20999999.995110556
+    // python version is: 3.6.6; numpy version:1.16.1; numpy.flinfo(numpy.longdouble) value is
+    // finfo(resolution=1.0000000000000000715e-18, min=-1.189731495357231765e+4932, max=1.189731495357231765e+4932, dtype=float128)
+    // in my personal computer;
+    uint public override constant supplyCap = 20999999995110556 * 10**17; // safeguard totalSupply to be never more than 21 trillion SATS, i.e. 21M BTC
     uint public override totalSupply;
     mapping(address => uint) public override balanceOf;
     mapping(address => mapping(address => uint)) public override allowance;
