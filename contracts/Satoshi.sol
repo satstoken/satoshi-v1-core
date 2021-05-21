@@ -145,7 +145,7 @@ contract Satoshi is ISatoshiERC20 {
         uint burn_amount = amount_sats.min(balanceOf[msg.sender]);
 
         _burn(msg.sender, burn_amount);
-        require(IERC20(WBTC).transfer(receiver, amount_wbtc));
+        require(IERC20(WBTC).transfer(receiver, amount_wbtc), 'Satoshi: WBTC_TRANSFER_FAILED');
 
         return true;
     }
