@@ -17,6 +17,10 @@ library SafeMath {
         require(x == 0 || (z = x * y) / x == y);
     }
 
+    function div(uint256 x, uint256 y) internal pure returns (uint256) {
+        return x / y;
+    }
+
     function max(uint256 x, uint256 y) internal pure returns (uint256) {
         return x >= y ? x : y;
     }

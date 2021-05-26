@@ -1,5 +1,5 @@
 /**
-    Token Creation Contract
+    The Satoshi Token
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -7,7 +7,6 @@
     (at your option) any later version. 
     
     A copy also available at <https://www.gnu.org/licenses/>.
-
 
 */
 //SPDX-License-Identifier: GPL-3.0-or-later
@@ -29,7 +28,7 @@ contract Satoshi is ISatoshiERC20 {
     // hence we use 18 decimals and need a conversion between WBTC and SATS
     // there will be friction when converting back from SATS to WBTC
     uint8 public override constant decimals = 18;
-    uint public override constant supplyCap = 2099999997690000 * 10**18; // safeguard totalSupply to be never more than 21 trillion SATS, i.e. 21M BTC
+    uint public override constant supplyCap = 2099999997690000 * 10**18; // safeguard totalSupply to be never more than ~2100 trillion SATS, i.e. ~21M BTC
     uint public override totalSupply;
     mapping(address => uint) public override balanceOf;
     mapping(address => mapping(address => uint)) public override allowance;
@@ -120,13 +119,12 @@ contract Satoshi is ISatoshiERC20 {
         _approve(owner, spender, value);
     }
 
-    // unit of sats. i.e. unpack 5000 => 5000 sats
+    // unit of sats without decimals. i.e. unpack 5000 => 5000 sats
     function unpack(uint unit_sats, address receiver) public override returns (bool) {
-        // amount of wbtc
-        // amount of satoshi = amount of wbtc * 10^10 (decimals 18 - 8 = 10)
-        // btc:sats = 1:10^8, therefore 
-        // multiplier = 10^8 * 10^10 = 10^18 = decimals
-        uint amount_wbtc = unit_sats.min(IERC20(WBTC).balanceOf(msg.sender)); // amount of wbtc
+        require(unit_sats > 0, 'Satoshi: 0_UNIT_SATS');
+        require(unit_sats <= IERC20(WBTC).balanceOf(msg.sender), 'Satoshi: NOT_ENOUGH_WBTC');
+        // amount of satoshi (decimals 18) = unit_sats * 10^18 = amount of wbtc (decimals 8) * 10^18
+        uint amount_wbtc = unit_sats; // amount of wbtc
         uint mint_amount = amount_wbtc.mul(10**decimals); // amount of satoshi
 
         require(IERC20(WBTC).transferFrom(msg.sender, address(this), amount_wbtc), 'Satoshi: WBTC_TRANSFER_FAILED');
@@ -135,14 +133,13 @@ contract Satoshi is ISatoshiERC20 {
         return true;
     }
 
-    // unit of sats. i.e. pack 5000 => 0.00005000 WBTC
+    // unit of sats without decimals. i.e. pack 5000 => 0.00005000 WBTC
     function pack(uint unit_sats, address receiver) public override returns (bool) {
-        // amount of satoshi
-        // amount of wbtc = amount of satoshi / 10^10 (decimals 18 - 8 = 10)
-        // btc:sats = 1:10^8, therefore divisor = 10^8 * 10^10 = 10^18
+        require(unit_sats > 0, 'Satoshi: 0_UNIT_SATS');
+        require(unit_sats.mul(10**decimals) <= balanceOf[msg.sender], 'Satoshi: NOT_ENOUGH_SATS');
+        // amount of wbtc (decimals 8) = unit_sats = amount of satoshi (decimals 18) / 10^18
         uint amount_wbtc = unit_sats;
-        uint amount_sats = unit_sats.mul(10**decimals);
-        uint burn_amount = amount_sats.min(balanceOf[msg.sender]);
+        uint burn_amount = amount_wbtc.mul(10**decimals);
 
         _burn(msg.sender, burn_amount);
         require(IERC20(WBTC).transfer(receiver, amount_wbtc), 'Satoshi: WBTC_TRANSFER_FAILED');
